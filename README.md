@@ -26,3 +26,4 @@ TODO
 * Small Qt based IDE with syntax highlighting, symbol completion etc.
 * Disassembly of current instruction in the debugger
 * Interrupts
+* Hardware breakpoint(s)
