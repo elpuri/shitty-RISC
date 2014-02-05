@@ -182,6 +182,7 @@ label : TOK_LABEL TOK_ENDL
 empty_line : TOK_ENDL
 
 // Insructions
+
 mov : TOK_MOV TOK_INTEGER TOK_COMMA TOK_REGISTER TOK_ENDL {
     MoveImmInstruction* n = new MoveImmInstruction();
     n->signExtend = $4 & 0x80000000;
@@ -193,7 +194,7 @@ mov : TOK_MOV TOK_INTEGER TOK_COMMA TOK_REGISTER TOK_ENDL {
             MoveImmInstruction* n = new MoveImmInstruction();
             n->signExtend = $4 & 0x80000000;
             n->targetRegister = $4 & 0xf;    // mask the sign extend bit
-            n->dataLabel = *$2;
+            n->label = *$2;
             codeSection->m_nodes.append(n);
     }
      | TOK_MOV TOK_REGISTER TOK_COMMA TOK_REGISTER TOK_ENDL {

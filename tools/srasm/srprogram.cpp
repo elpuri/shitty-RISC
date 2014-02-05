@@ -128,6 +128,11 @@ int SRProgram::lookupDataLabel(QString label)
     return value;
 }
 
+bool SRProgram::dataLabelExists(QString label)
+{
+    return (m_dataLabels.value(label, -1) != -1);
+}
+
 void SRProgram::fixCodeLabelReferences(int offset)
 {
     foreach(CodeLabelRef ref, m_codeLabelRefs) {
@@ -143,8 +148,13 @@ void SRProgram::handleNode(MoveImmInstruction *n)
 {
     //qDebug() << Q_FUNC_INFO << "target reg" << n->targetRegister << "immediate:" << n->immediate << "sign extend:" << n->signExtend;
     unsigned short instruction = OPCODE_MOVE_IMM;
-    if (n->dataLabel.length() > 0)
-        instruction |= lookupDataLabel(n->dataLabel);
+    if (n->label.length() > 0)
+        if (dataLabelExists(n->label))
+            instruction |= lookupDataLabel(n->label) & 0xff;
+        else {    // code label, add ref {
+            qDebug() << "adding imm coide ref" << n->label;
+            m_codeLabelRefs.append(QPair<int, QString>(m_instructions.length(), n->label));
+        }
     else
         instruction |= n->immediate;
     if (n->signExtend)

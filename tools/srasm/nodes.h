@@ -93,7 +93,7 @@ class MoveImmInstruction : public Node {
 public:
     void visit(SRProgram *p);
     unsigned char immediate;
-    QString dataLabel;
+    QString label;
     int targetRegister;
     bool signExtend;
 };

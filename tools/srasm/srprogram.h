@@ -70,6 +70,7 @@ public:
 private:
     void fixCodeLabelReferences(int offset);
     int lookupDataLabel(QString label);
+    bool dataLabelExists(QString label);
     int dataAllocHead();
 
 private:
