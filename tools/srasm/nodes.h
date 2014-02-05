@@ -105,6 +105,7 @@ public:
 
     Condition condition;
     QString label;
+    int jumpTargetRegister;
 };
 
 class LoadInstruction : public Node {

@@ -42,11 +42,12 @@ void addAluInstruction(Section* section, int t, int r, int s, AluInstruction::Op
     section->m_nodes.append(n);
 }
 
-void addBranchInstruction(Section* section, BranchInstruction::Condition condition, QString label)
+void addBranchInstruction(Section* section, BranchInstruction::Condition condition, QString label, int jumpTargetRegister = -1)
 {
     BranchInstruction* n = new BranchInstruction;
     n->label = label;
     n->condition = condition;
+    n->jumpTargetRegister = jumpTargetRegister;
     section->m_nodes.append(n);
 }
 
@@ -346,14 +347,23 @@ inc : TOK_INC TOK_REGISTER TOK_ENDL {
 brne : TOK_BRNE TOK_LABEL_REF TOK_ENDL {
         addBranchInstruction(codeSection, BranchInstruction::NotEqual, *$2);
     }
+    | TOK_BRNE TOK_REGISTER TOK_ENDL {
+    addBranchInstruction(codeSection, BranchInstruction::NotEqual, QString(), $2);
+}
 
 breq : TOK_BREQ TOK_LABEL_REF TOK_ENDL {
         addBranchInstruction(codeSection, BranchInstruction::Equal, *$2);
     }
+    | TOK_BREQ TOK_REGISTER TOK_ENDL {
+    addBranchInstruction(codeSection, BranchInstruction::Equal, QString(), $2);
+}
 
 bra : TOK_BRA TOK_LABEL_REF TOK_ENDL {
         addBranchInstruction(codeSection, BranchInstruction::Always, *$2);
     }
+    | TOK_BRA TOK_REGISTER TOK_ENDL {
+    addBranchInstruction(codeSection, BranchInstruction::Always, QString(), $2);
+}
 
 halt : TOK_HALT TOK_ENDL {
         codeSection->m_nodes.append(new HaltInstruction);

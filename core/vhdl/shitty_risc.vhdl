@@ -73,11 +73,12 @@ signal sr_reg, sr_next : std_logic_vector(7 downto 0);
 -- Instruction decoding related
 signal op : operation;
 signal op_alu_op : std_logic_vector(3 downto 0);
-signal op_sign_extend, op_indirect_addr : std_logic;
+signal op_sign_extend, op_indirect_addr, op_register_jump_target : std_logic;
 signal reg_src1_select, reg_src2_select, reg_dst_select : register_address;
 signal branch_cond : std_logic_vector(1 downto 0);
 signal instruction : std_logic_vector(15 downto 0);
 signal imm_address, imm_value : std_logic_vector(7 downto 0);
+signal jump_target : std_logic_vector(7 downto 0);
 
 -- status flags
 signal carry, carry_next, negative, negative_next, zero, zero_next, halted, halted_next : std_logic;
@@ -151,6 +152,7 @@ begin
 	-- a = RAM address
 	-- e = sign extend flag
 	-- n = indirect addressing
+	-- R = register jump target
 	-- o = IO write
 	
 	-- NOP
@@ -218,6 +220,9 @@ begin
 	-- BREQ
 	-- 0101XX00aaaaaaaa
 	
+	-- BREQI	(others follow same pattern regarding I)
+	-- 0101RX00rrXXXXXX
+	
 	-- BRNE
 	-- 0101XX01aaaaaaaa
 	
@@ -243,6 +248,7 @@ begin
 	branch_cond <= instruction(9 downto 8);
 	op_sign_extend <= instruction(10);
 	op_indirect_addr <= instruction(11);
+	op_register_jump_target <= instruction(11);
 	
 	-- Separate status flags
 	halted <= sr_reg(3);
@@ -324,20 +330,20 @@ begin
 				mem_write <= '1';
 				
 			-- Branches
-			when "0101" =>
+			when "0101" =>				
 				case branch_cond is
 					when "00" =>	-- BREQ
 						if (zero = '1') then
-							pc_next <= imm_address;
+							pc_next <= jump_target;
 						end if;
 					
 					when "01" =>	-- BRNE
 						if (zero = '0') then
-							pc_next <= imm_address;
+							pc_next <= jump_target;
 						end if;
 						
 					when "10" =>	-- BRA
-						pc_next <= imm_address;
+						pc_next <= jump_target;
 						
 					when others =>
 						pc_next <= pc_reg + 1;
@@ -364,6 +370,7 @@ begin
 	pgm_mem_addr <= pc_reg;
 	data_mem_addr <= reg_src1_out(7 downto 0) when op_indirect_addr = '1' else imm_address;
 	data_mem_wr_ena <= clk_ena and mem_write;
+	jump_target <= reg_src1_out(7 downto 0) when op_register_jump_target = '1' else imm_value;
 	
 	-- scan logic
 	process (scan_reg, scan_enable, scan_input, scan_reset, pc_reg, sr_reg, instruction, reg_file_scan_output)

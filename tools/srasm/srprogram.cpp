@@ -32,6 +32,7 @@
 #define SRC1_REG 6
 #define SRC2_REG 4
 #define FLAG_INDIRECT 0x0800
+#define FLAG_REGISTER_JUMP_TARGET 0x0800
 #define FLAG_EXTEND 0x0400
 #define OPCODE_MOVE_IMM 0x1000
 #define OPCODE_LOAD 0x2000
@@ -108,7 +109,7 @@ QByteArray SRProgram::assemble(Section *codeSection, Section *dataSection)
         isFirstSeg = false;
     }
 
-    fixCodeLabelReferences(m_dataAllocHead);
+    fixCodeLabelReferences(dataPtr / 2);
 
     foreach(unsigned short instruction, m_instructions) {
         bin[dataPtr++] = (char) (instruction >> 8);
@@ -151,10 +152,8 @@ void SRProgram::handleNode(MoveImmInstruction *n)
     if (n->label.length() > 0)
         if (dataLabelExists(n->label))
             instruction |= lookupDataLabel(n->label) & 0xff;
-        else {    // code label, add ref {
-            qDebug() << "adding imm coide ref" << n->label;
+        else     // code label, add ref
             m_codeLabelRefs.append(QPair<int, QString>(m_instructions.length(), n->label));
-        }
     else
         instruction |= n->immediate;
     if (n->signExtend)
@@ -222,7 +221,12 @@ void SRProgram::handleNode(BranchInstruction* n)
         case BranchInstruction::Always:
             i |= 0x0200; break;
     }
-    m_codeLabelRefs.append(QPair<int, QString>(m_instructions.length(), n->label));
+    if (n->label.length() > 0)
+        m_codeLabelRefs.append(QPair<int, QString>(m_instructions.length(), n->label));
+    else {
+        i |= FLAG_REGISTER_JUMP_TARGET;
+        i |= n->jumpTargetRegister << SRC1_REG;
+    }
     m_instructions.append(i);
 }
 
