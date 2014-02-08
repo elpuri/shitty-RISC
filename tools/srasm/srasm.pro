@@ -32,7 +32,8 @@ OTHER_FILES +=  \
     tests/beeper.asm \
     tests/lcd.asm \
     tests/ghettosubroutine.asm \
-    tests/subroutine.asm
+    tests/subroutine.asm \
+    tests/pushpop.asm
 
 flexsource.input = FLEXSOURCES
 flexsource.output = ${QMAKE_FILE_BASE}.cpp

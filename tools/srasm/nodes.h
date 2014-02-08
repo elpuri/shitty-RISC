@@ -114,6 +114,14 @@ public:
     void visit(SRProgram* p);
 };
 
+class StackMoveInstruction : public Node {
+public:
+    void visit(SRProgram* p);
+    bool pop;
+    int registerName;
+    bool extendedReg;   // generate push/pop swap push/pop swap combo to push/pop the whole 16-bit reg
+};
+
 class LoadInstruction : public Node {
 public:
     void visit(SRProgram *p);

@@ -34,6 +34,7 @@
 #define FLAG_INDIRECT 0x0800
 #define FLAG_REGISTER_JUMP_TARGET 0x0800
 #define FLAG_EXTEND 0x0400
+#define FLAG_POP 0x0800
 #define OPCODE_MOVE_IMM 0x1000
 #define OPCODE_LOAD 0x2000
 #define OPCODE_STORE 0x3000
@@ -42,6 +43,7 @@
 #define OPCODE_COPYDATA 0x6000
 #define OPCODE_BRANCH_TO_SUBROUTINE 0x7000
 #define OPCODE_RETURN_FROM_SUBROUTINE 0x8000
+#define OPCODE_STACK_MOVE 0x9000        // PUSH & POP
 #define OPCODE_READ_IO 0xA000   //  essentially LOAD and STORE with MSB set
 #define OPCODE_WRITE_IO 0xB000
 #define OPCODE_HALT 0xf000
@@ -180,6 +182,33 @@ void SRProgram::handleNode(NopInstruction* /* n */)
 void SRProgram::handleNode(ReturnInstruction* /* n */)
 {
     m_instructions.append(OPCODE_RETURN_FROM_SUBROUTINE);
+}
+
+void SRProgram::handleNode(StackMoveInstruction *n)
+{
+    if (n->extendedReg) {
+        unsigned short stackInstruction = OPCODE_STACK_MOVE;
+        if (n->pop)
+            stackInstruction |= FLAG_POP;
+        stackInstruction |= n->registerName << TARGET_REG;
+
+        unsigned short swapInstruction = OPCODE_ALUOP | 5;
+        swapInstruction |= n->registerName << SRC1_REG;
+        swapInstruction |= n->registerName << SRC2_REG;
+        swapInstruction |= n->registerName << TARGET_REG;
+        m_instructions.append(stackInstruction);
+        m_instructions.append(swapInstruction);
+        m_instructions.append(stackInstruction);
+        if (!n->pop)
+            m_instructions.append(swapInstruction);
+
+    } else {
+        unsigned short i = OPCODE_STACK_MOVE;
+        if (n->pop)
+            i |= FLAG_POP;
+        i |= n->registerName << TARGET_REG;
+        m_instructions.append(i);
+    }
 }
 
 

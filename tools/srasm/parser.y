@@ -104,6 +104,8 @@ void addBranchInstruction(Section* section, BranchInstruction::Condition conditi
 %token TOK_IN
 %token TOK_BSR
 %token TOK_RET
+%token TOK_PUSH
+%token TOK_POP
 
 %type <data> data_fragment
 %type <data> data
@@ -154,6 +156,8 @@ code_statement : label {
               | out
               | in
               | bsr
+              | push
+              | pop
 
 data_statements : data_statements data_statement
                 | data_statement
@@ -380,6 +384,21 @@ bsr : TOK_BSR TOK_LABEL_REF TOK_ENDL {
     addBranchInstruction(codeSection, BranchInstruction::Always, QString(), true, $2);
 }
 
+push : TOK_PUSH TOK_REGISTER {
+    StackMoveInstruction* n = new StackMoveInstruction();
+    n->pop = false;
+    n->registerName = $2;
+    n->extendedReg = $2 & 0x80000000;
+    codeSection->m_nodes.append(n);
+}
+
+pop : TOK_POP TOK_REGISTER {
+    StackMoveInstruction* n = new StackMoveInstruction();
+    n->pop = true;
+    n->registerName = $2;
+    n->extendedReg = $2 & 0x80000000;
+    codeSection->m_nodes.append(n);
+}
 
 halt : TOK_HALT TOK_ENDL {
         codeSection->m_nodes.append(new HaltInstruction);

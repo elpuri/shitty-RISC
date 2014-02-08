@@ -44,6 +44,7 @@ class BranchInstruction;
 class StoreInstruction;
 class LoadInstruction;
 class ReturnInstruction;
+class StackMoveInstruction;
 
 class SRProgram
 {
@@ -68,6 +69,7 @@ public:
     void handleNode(LoadInstruction*);
     void handleNode(StoreInstruction*);
     void handleNode(ReturnInstruction*);
+    void handleNode(StackMoveInstruction*);
 
 private:
     void fixCodeLabelReferences(int offset);

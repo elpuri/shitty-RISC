@@ -38,3 +38,4 @@ void BranchInstruction::visit(SRProgram *p) { p->handleNode(this); }
 void LoadInstruction::visit(SRProgram *p) { p->handleNode(this); }
 void StoreInstruction::visit(SRProgram *p) { p->handleNode(this); }
 void ReturnInstruction::visit(SRProgram *p) { p->handleNode(this); }
+void StackMoveInstruction::visit(SRProgram *p) { p->handleNode(this); }

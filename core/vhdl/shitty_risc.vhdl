@@ -75,7 +75,7 @@ signal sp_reg, sp_next : std_logic_vector(7 downto 0) := "11111111";
 signal op : operation;
 signal op_alu_op : std_logic_vector(3 downto 0);
 signal op_sign_extend, op_indirect_addr, op_register_jump_target : std_logic;
-signal op_push_pop : std_logic;
+signal op_pop_push : std_logic;
 signal reg_src1_select, reg_src2_select, reg_dst_select : register_address;
 signal branch_cond : std_logic_vector(1 downto 0);
 signal instruction : std_logic_vector(15 downto 0);
@@ -248,6 +248,12 @@ begin
 	-- RET
 	--	1000XXXXXXXXXXXX
 	
+	-- PUSH
+	-- 10010XttXXXXXXXX
+
+	-- POP
+	-- 10011XttXXXXXXXX
+	
 	-- CPYDATA
 	--	01101Xttiiiiiiii
 	-- (t++) = imm
@@ -268,7 +274,7 @@ begin
 	op_sign_extend <= instruction(10);
 	op_indirect_addr <= instruction(11);
 	op_register_jump_target <= instruction(11);
-	op_push_pop <= instruction(11);
+	op_pop_push <= instruction(11);
 	
 	-- Separate status flags
 	halted <= sr_reg(3);
@@ -397,7 +403,7 @@ begin
 						
 					when others =>
 						pc_next <= pc_reg + 1;
-							
+						
 				end case;
 				
 			when "1000"	=>		-- RET
@@ -405,6 +411,20 @@ begin
 				sp_next <= sp_reg + 1;
 				pc_next <= data_mem_data_in;
 
+			when "1001" =>		-- PUSH & POP
+				if (op_pop_push = '0') then
+					stack_write_access <= '1';
+					sp_next <= sp_reg - 1;
+					mem_write <= '1';
+					data_mem_data_out <= reg_dst_out(7 downto 0);		-- can push only lower byte
+				else
+					stack_read_access <= '1';
+					sp_next <= sp_reg + 1;
+					reg_wr_ena <= '1';
+					reg_dst_in <= reg_dst_out(15 downto 8) & data_mem_data_in;  -- can pop only lower byte
+				end if;
+			
+				
 			when "0110" =>		-- CPYDATA
 				-- write immediate value to (t) and inc t in one instruction w00t
 				mem_write <= '1';
