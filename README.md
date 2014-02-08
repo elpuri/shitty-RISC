@@ -21,7 +21,7 @@ Project features
 TODO
 ----
 
-* A stack pointer and associated instuctions (push, pop, jump to subroutine)
+* A stack pointer and associated instuctions (push, pop, jump to subroutine) - DONE
 * Add/sub with carry
 * Test/compare instructions that perform ALU operations which affect status flags, but don't write the actual result anywhere
 * Small Qt based IDE with syntax highlighting, symbol completion etc.
