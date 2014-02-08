@@ -40,7 +40,7 @@ entity shitty_risc_top_ep1 is Port (
 	hd44780_rw : out std_logic;
 	hd44780_rs : out std_logic;
 	hd44780_en : out std_logic;
-	hd44780_data : inout std_logic_vector(7 downto 0)
+	hd44780_data : out std_logic_vector(7 downto 0)
 );
 end shitty_risc_top_ep1;
 
