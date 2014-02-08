@@ -30,7 +30,8 @@ OTHER_FILES +=  \
     tests/cpydata.asm \
     tests/display.asm \
     tests/beeper.asm \
-    tests/subroutine.asm
+    tests/subroutine.asm \
+    tests/lcd.asm
 
 flexsource.input = FLEXSOURCES
 flexsource.output = ${QMAKE_FILE_BASE}.cpp

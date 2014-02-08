@@ -36,7 +36,11 @@ entity shitty_risc_top_ep1 is Port (
 	btn : in std_logic_vector(3 downto 0);
 	seven_seg : out std_logic_vector(7 downto 0);
 	seven_seg_an : out std_logic_vector(3 downto 0);
-	buzz : out std_logic
+	buzz : out std_logic;
+	hd44780_rw : out std_logic;
+	hd44780_rs : out std_logic;
+	hd44780_en : out std_logic;
+	hd44780_data : inout std_logic_vector(7 downto 0)
 );
 end shitty_risc_top_ep1;
 
@@ -91,6 +95,10 @@ signal reset : std_logic;
 
 signal terminal_scan_input : std_logic;
 
+signal lcdctrl_data_in, lcdctrl_data_out : std_logic_vector(7 downto 0);
+signal lcdctrl_write_strobe, lcdctrl_rs, lcdctrl_ready_read : std_logic;
+signal lcdctrl_select : std_logic;	-- chip select
+
 begin
 	debugger : entity work.debugger port map (
 		clk_50 => clk_50,
@@ -142,15 +150,19 @@ begin
 	data_ram_data_in <= debugger_data_ram_data_out when debugger_mem_access = '1' else cpu_data_ram_data_out;
 
 	-- Allocating each 'device' 4 bits of address space, should be enough...
-	io_write <= '1' when (cpu_mem_io_select = '0' and cpu_data_ram_wren = '1') else '0';
+	-- Anding with cpu_clk_ena because the cpu outputs glitch 
+	io_write <= '1' when (cpu_mem_io_select = '0' and cpu_data_ram_wren = '1' and debugger_cpu_clk_ena = '1') else '0';
 	
 	display_device_select <= '1' when cpu_data_ram_addr(7 downto 4) = "0000" else '0';
 	beeper_select <= '1' when cpu_data_ram_addr(7 downto 4) = "0001" else '0';
-
+	lcdctrl_select <= '1' when cpu_data_ram_addr(7 downto 4) = "0010" else '0';
+	
 	display_device_wr_ena <= display_device_select and io_write;	
 	beeper_wr_ena <= beeper_select and io_write;
+	lcdctrl_write_strobe <= lcdctrl_select and io_write;
+	lcdctrl_rs <= cpu_data_ram_addr(0);		-- 0x20 register write, 0x21 lcd ram write
+	lcdctrl_data_in <= cpu_data_ram_data_out;
 	
-
 	-- Muxing ram, device and device outputs to cpu data input
 	process (cpu_mem_io_select, cpu_data_ram_addr, display_device_select, beeper_select,
 				data_ram_data_out)
@@ -158,9 +170,7 @@ begin
 		cpu_data_ram_data_in <= data_ram_data_out;
 
 		if (cpu_mem_io_select = '0') then
-			if (display_device_select = '1' or beeper_select = '1') then
-				cpu_data_ram_data_in <= (others => '0');	
-			end if;
+			cpu_data_ram_data_in <= (others => '0');	
 		end if;
 
 	end process;
@@ -202,6 +212,20 @@ begin
 		wr_ena => display_device_wr_ena
 	);
 
+	-- The EP1 board supplies 5V to the LCD, but the  
+	hd44780_rw <= '0';
+	hd44780_data <= lcdctrl_data_out;
+	
+	hd44780 : entity work.lcd_controller port map (
+		clk_50 => clk_50,
+		reset => reset,
+		di => lcdctrl_data_in,
+		strobe => lcdctrl_write_strobe,
+		register_select => lcdctrl_rs,
+		lcd_en => hd44780_en,
+		lcd_rs => hd44780_rs,
+		lcd_do => lcdctrl_data_out
+	);
 	
 	display_device_address <= cpu_data_ram_addr(2 downto 0);
 	display_device_data <= cpu_data_ram_data_out;
