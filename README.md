@@ -18,6 +18,23 @@ Project features
 * A beeper device capable of producing 32 different notes on the piezo buzzer of the development board
 * An HD44780 driver logic for operating an LCD display. For now the driver is write only because whoever designed the EP1 board had the great idea of providing 5V to the HD44780 header. Letting the HD44780 drive the I/O pins of the FPGA running @3.3V would fry the inputs. 
 
+I/O map
+------
+<pre><code>
+$00-$04 - 7-segment display write-only data registers. Encoded or coded depending on control register.
+$05     - 7-segment display control register. XXXXXXCE
+          C = 1, interpret the four LSBs of the data register as a hex digit
+          C = 0, each data register bit drives individual segement
+          E, 1 = display on, 0 = display off.
+$10     - Beeper device write-only frequency register. 
+          Values 0-31 correspond to two octaves of musical notes.
+          0xFF = silence
+$20     - Write LCD command. Write-only.
+$21     - Write LCD data RAM. Write-only.
+          
+</code></pre>
+
+
 TODO
 ----
 
@@ -28,3 +45,4 @@ TODO
 * Disassembly of current instruction in the debugger
 * Interrupts
 * Hardware breakpoint(s)
+
