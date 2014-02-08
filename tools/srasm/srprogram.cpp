@@ -138,7 +138,10 @@ void SRProgram::fixCodeLabelReferences(int offset)
 {
     foreach(CodeLabelRef ref, m_codeLabelRefs) {
         int address = m_codeLabels.value(ref.second, -1);
-        assert(address >= 0);
+        if (address < 0) {
+            qDebug() << "Couldn't find code label" << ref.second;
+            qFatal("");
+        }
         unsigned short instruction = m_instructions.at(ref.first);
         instruction |= (address + offset) & 0xff;
         m_instructions.replace(ref.first, instruction);
