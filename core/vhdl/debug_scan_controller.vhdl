@@ -96,7 +96,7 @@ begin
 			when apply_reset =>
 				scan_reset <= '1';
 				state_next <= prepare_collect_byte;
-				expected_scan_byte_count_next <= conv_std_logic_vector(1 + 1 + 2 + 8, 6);
+				expected_scan_byte_count_next <= conv_std_logic_vector(1 + 1 + 1 + 2 + 8, 6);
 				
 			when prepare_collect_byte =>
 				collect_debug_byte_counter_next <= (others => '0');

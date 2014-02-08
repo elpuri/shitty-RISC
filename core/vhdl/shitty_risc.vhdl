@@ -69,11 +69,13 @@ signal control_path_scan_input, control_path_scan_output : std_logic;
 
 signal pc_reg, pc_next : std_logic_vector(7 downto 0);
 signal sr_reg, sr_next : std_logic_vector(7 downto 0);
+signal sp_reg, sp_next : std_logic_vector(7 downto 0) := "11111111";
 
 -- Instruction decoding related
 signal op : operation;
 signal op_alu_op : std_logic_vector(3 downto 0);
 signal op_sign_extend, op_indirect_addr, op_register_jump_target : std_logic;
+signal op_push_pop : std_logic;
 signal reg_src1_select, reg_src2_select, reg_dst_select : register_address;
 signal branch_cond : std_logic_vector(1 downto 0);
 signal instruction : std_logic_vector(15 downto 0);
@@ -84,12 +86,15 @@ signal jump_target : std_logic_vector(7 downto 0);
 signal carry, carry_next, negative, negative_next, zero, zero_next, halted, halted_next : std_logic;
 
 -- Instruction | SR | PC
-constant scan_length : integer := 16 + 8 + 8; 
+constant scan_length : integer := 16 + 8 + 8 + 8; 
 signal scan_reg, scan_reg_next : std_logic_vector(scan_length - 1 downto 0);
 
 signal movi_high_byte, ld_high_byte : std_logic_vector(7 downto 0);
 
-signal mem_write : std_logic;
+signal mem_write: std_logic;
+
+signal stack_read_access, stack_write_access : std_logic;
+
 
 begin
 
@@ -99,17 +104,19 @@ begin
 			pc_reg <= (others => '0');
 			sr_reg <= (others => '0');
 			scan_reg <= (others => '0');
+			sp_reg <= "11111111";
 		elsif (clk'event and clk = '1') then			
 			if (clk_ena = '1') then
 				pc_reg <= pc_next;
 				sr_reg <= sr_next;
+				sp_reg <= sp_next;
 			end if;
 			-- not related to actual CPU functionality so no need to depend on clk_ena
 			scan_reg <= scan_reg_next;
 		end if;
 	end process;
 
-	
+	-- General purpose registers
 	registers : entity work.register_file port map (
 		clk => clk,
 		clk_ena => clk_ena,
@@ -229,6 +236,18 @@ begin
 	-- BRA
 	-- 0101XX10aaaaaaaa
 	
+	-- BSR
+	--	0111XX10aaaaaaaa
+	
+	-- BSRE
+	--	0111XX00aaaaaaaa
+	
+	-- BSRNE
+	--	0111XX01aaaaaaaa
+	
+	-- RET
+	--	1000XXXXXXXXXXXX
+	
 	-- CPYDATA
 	--	01101Xttiiiiiiii
 	-- (t++) = imm
@@ -249,15 +268,17 @@ begin
 	op_sign_extend <= instruction(10);
 	op_indirect_addr <= instruction(11);
 	op_register_jump_target <= instruction(11);
+	op_push_pop <= instruction(11);
 	
 	-- Separate status flags
 	halted <= sr_reg(3);
 	carry <= sr_reg(2);
 	negative <= sr_reg(1);
 	zero <= sr_reg(0);
+
 	
 	-- Control path logic
-	process (pc_reg, carry, negative, zero, sr_reg, imm_value, op_sign_extend, data_mem_data_in,
+	process (pc_reg, carry, negative, zero, sr_reg, sp_reg, imm_value, op_sign_extend, data_mem_data_in,
 				op, movi_high_byte, alu_result, ld_high_byte, branch_cond, imm_address,
 				alu_zero, alu_negative, reg_dst_out, zero_next)
 	begin
@@ -271,11 +292,15 @@ begin
 		alu_op <= op_alu_op;
 		reg_src1_select <= instruction(7 downto 6);
 		mem_io_select <= '1';
+		stack_read_access <= '0';
+		stack_write_access <= '0';
+		sp_next <= sp_reg;
+		
 
 		sr_next <= "0000" & halted_next & carry_next & negative_next & zero_next;
 		pc_next <= pc_reg + 1;
 
-		-- to simplify encoding we're using the usual dest reg as output
+		-- to simplify encoding we're using the usual dest reg as output for st instruction
 		data_mem_data_out <= reg_dst_out(7 downto 0);		
 		
 		-- generate high bytes for movi and ld with sign extension if op_sign_extend is set
@@ -349,6 +374,36 @@ begin
 						pc_next <= pc_reg + 1;
 							
 				end case;
+				
+			-- Branch to subroutine
+			when "0111" =>
+				mem_write <= '1';
+				stack_write_access <= '1';
+				sp_next <= sp_reg - 1;
+				data_mem_data_out <= pc_reg + 1;
+				case branch_cond is
+					when "00" =>	-- BREQ
+						if (zero = '1') then
+							pc_next <= jump_target;
+						end if;
+					
+					when "01" =>	-- BRNE
+						if (zero = '0') then
+							pc_next <= jump_target;
+						end if;
+						
+					when "10" =>	-- BRA
+						pc_next <= jump_target;
+						
+					when others =>
+						pc_next <= pc_reg + 1;
+							
+				end case;
+				
+			when "1000"	=>		-- RET
+				stack_read_access <= '1';
+				sp_next <= sp_reg + 1;
+				pc_next <= data_mem_data_in;
 
 			when "0110" =>		-- CPYDATA
 				-- write immediate value to (t) and inc t in one instruction w00t
@@ -368,7 +423,9 @@ begin
 	end process;
 	
 	pgm_mem_addr <= pc_reg;
-	data_mem_addr <= reg_src1_out(7 downto 0) when op_indirect_addr = '1' else imm_address;
+	data_mem_addr <= sp_reg when stack_write_access = '1' else
+						  sp_next when stack_read_access = '1' else
+						  reg_src1_out(7 downto 0) when op_indirect_addr = '1' else imm_address;
 	data_mem_wr_ena <= clk_ena and mem_write;
 	jump_target <= reg_src1_out(7 downto 0) when op_register_jump_target = '1' else imm_value;
 	
@@ -376,7 +433,7 @@ begin
 	process (scan_reg, scan_enable, scan_input, scan_reset, pc_reg, sr_reg, instruction, reg_file_scan_output)
 	begin
 		if (scan_reset = '1') then
-			scan_reg_next <= instruction & sr_reg & pc_reg;
+			scan_reg_next <= instruction & sr_reg & pc_reg & sp_reg;
 		elsif (scan_enable = '1') then
 			scan_reg_next <= reg_file_scan_output & scan_reg(scan_length - 1 downto 1); 
 		else

@@ -1,22 +1,13 @@
-// Ghetto subroutine
-
 SECTION CODE
 
-    mov     10, r0
-    mov     return, r1
-    bra     sub
+    // testing subroutine calls and returns
 
-return:
-    mov     $bb, r3
+    bsr     subroutine
+    mov     1, r1
     halt
 
+subroutine:
+    mov     $aa, r0
+    ret
 
-sub:
-    mov     $aa, r2
-    bra     r1
-
-SECTION DATA
-
-ret_addr:
-    rb  1
 END

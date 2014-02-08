@@ -173,9 +173,9 @@ void RiscComm::doScan()
     m_sp->write(cmd, 4);
 
     //
-    // Control path 3 (IR + PC + SR)
+    // Control path 3 (IR + PC + SR + SP)
     // Regfile 8 (r0 - r3)
-    int scanLength = 8 + 2 + 1 + 1;
+    int scanLength = 8 + 2 + 1 + 1 + 1;
     QElapsedTimer e;
     e.start();
 
@@ -195,8 +195,10 @@ void RiscComm::doScan()
     unsigned short ir;
     unsigned char pc;
     unsigned char sr;
+    unsigned char sp;
 
     int o = 0;
+    sp = takeByte(d, o);
     pc = takeByte(d, o);
     sr = takeByte(d, o);
     ir = takeShort(d, o);
@@ -213,6 +215,6 @@ void RiscComm::doScan()
     srString[4] = 0;
     printf("----------------------------------------------\n");
     printf("R0: 0x%04X  R1: 0x%04X  R2: 0x%04X  R3: 0x%04X\n", regs[0], regs[1], regs[2], regs[3]);
-    printf("PC: 0x%02X    SR: --%s  IR: 0x%04X\n", pc, srString, ir);
+    printf("PC: 0x%02X    SR: --%s  IR: 0x%04X  SP: 0x%02X\n", pc, srString, ir, sp);
     printf("----------------------------------------------\n");
 }

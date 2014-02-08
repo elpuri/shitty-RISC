@@ -40,6 +40,8 @@
 #define OPCODE_ALUOP 0x4000
 #define OPCODE_BRANCH 0x5000
 #define OPCODE_COPYDATA 0x6000
+#define OPCODE_BRANCH_TO_SUBROUTINE 0x7000
+#define OPCODE_RETURN_FROM_SUBROUTINE 0x8000
 #define OPCODE_READ_IO 0xA000   //  essentially LOAD and STORE with MSB set
 #define OPCODE_WRITE_IO 0xB000
 #define OPCODE_HALT 0xf000
@@ -175,6 +177,12 @@ void SRProgram::handleNode(NopInstruction* /* n */)
     m_instructions.append(OPCODE_NOP);
 }
 
+void SRProgram::handleNode(ReturnInstruction* /* n */)
+{
+    m_instructions.append(OPCODE_RETURN_FROM_SUBROUTINE);
+}
+
+
 void SRProgram::handleNode(HaltInstruction* /* n */)
 {
     m_instructions.append(OPCODE_HALT);
@@ -215,7 +223,7 @@ void SRProgram::handleNode(AluInstruction *n)
 
 void SRProgram::handleNode(BranchInstruction* n)
 {
-    unsigned short i = OPCODE_BRANCH;
+    unsigned short i = n->subroutineCall ? OPCODE_BRANCH_TO_SUBROUTINE : OPCODE_BRANCH;
     switch (n->condition) {
         case BranchInstruction::Equal:
             i |= 0x0000; break;

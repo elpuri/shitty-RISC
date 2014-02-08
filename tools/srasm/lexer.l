@@ -66,6 +66,8 @@ END         { return TOK_END; }
 (INC)|(inc)     { return TOK_INC; }
 (IN)|(in)       { return TOK_IN; }
 (OUT)|(out)     { return TOK_OUT; }
+(BSR)|(bsr)     { return TOK_BSR; }
+(RET)|(ret)     { return TOK_RET; }
 
 [a-zA-Z_][a-z0-9_]*: {
 //    qDebug() << "Lexer found label" << yytext;

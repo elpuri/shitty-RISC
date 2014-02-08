@@ -43,6 +43,7 @@ class AluInstruction;
 class BranchInstruction;
 class StoreInstruction;
 class LoadInstruction;
+class ReturnInstruction;
 
 class SRProgram
 {
@@ -66,6 +67,7 @@ public:
     void handleNode(BranchInstruction*);
     void handleNode(LoadInstruction*);
     void handleNode(StoreInstruction*);
+    void handleNode(ReturnInstruction*);
 
 private:
     void fixCodeLabelReferences(int offset);

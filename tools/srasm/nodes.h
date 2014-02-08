@@ -106,6 +106,12 @@ public:
     Condition condition;
     QString label;
     int jumpTargetRegister;
+    bool subroutineCall;
+};
+
+class ReturnInstruction : public Node {
+public:
+    void visit(SRProgram* p);
 };
 
 class LoadInstruction : public Node {
