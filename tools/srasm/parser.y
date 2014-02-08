@@ -132,9 +132,7 @@ code_statement : label {
 }
               | empty_line
               | mov
-              | nop {
-    codeSection->m_nodes.append(new NopInstruction);
-}
+              | nop
               | ld
               | st
               | swap
@@ -204,7 +202,9 @@ mov : TOK_MOV TOK_INTEGER TOK_COMMA TOK_REGISTER TOK_ENDL {
 
 }
 
-nop : TOK_NOP TOK_ENDL { qDebug() << "NOP"; }
+nop : TOK_NOP TOK_ENDL  {
+    codeSection->m_nodes.append(new NopInstruction);
+}
 
 //  ld $123, r0
 ld : TOK_LD TOK_INTEGER TOK_COMMA TOK_REGISTER TOK_ENDL {
@@ -398,4 +398,5 @@ data_fragment  : TOK_STRING {
 
 void yyerror(Section* codeSection, Section* dataSection, const char* s) {
     qDebug() << "Error on line" << lineNumber << ":" << s;
+    qFatal("");
 }
