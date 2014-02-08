@@ -1,7 +1,6 @@
+// testing subroutine calls and returns
+
 SECTION CODE
-
-    // testing subroutine calls and returns
-
     bsr     subroutine
     mov     1, r1
     halt

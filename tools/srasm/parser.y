@@ -119,7 +119,7 @@ void addBranchInstruction(Section* section, BranchInstruction::Condition conditi
 
 %%
 
-start : TOK_SECTION TOK_CODE code_statements TOK_END endls {
+start : endls TOK_SECTION TOK_CODE code_statements TOK_END endls {
     }
       | TOK_SECTION TOK_CODE code_statements TOK_SECTION TOK_DATA data_statements TOK_END endls {
     }
