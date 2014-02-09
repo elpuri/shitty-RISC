@@ -32,6 +32,8 @@ Mnemonic(s):      NOP
 Description:      No operation
 Instruction word: 0000XXXXXXXXXXXX
 
+-----------------------------------------------------------------------------------------------------------------
+
 Instruction:      Move immediate
 Mnemonic(s):      MOV imm, rr[e]
 Descritipon:      Writes the immediate value to the target register
@@ -41,6 +43,8 @@ Instruction word: 0001Xerriiiiiiii
                   rr = target register number (0-3)
                   i = immediate value bits
                   
+-----------------------------------------------------------------------------------------------------------------
+
 Instruction:      Load memory immediate
 Mnemonic(s):      LD (imm), rr[e]
 Operation:        Loads a byte from immediate address and places it into the target register
@@ -50,6 +54,8 @@ Instruction word: 00100erriiiiiiii
                   rr = target register number (0-3)
                   i = immediate value bits
                   
+-----------------------------------------------------------------------------------------------------------------
+                  
 Instruction:      Load memory indirect
 Mnemonic(s):      LD (ss), rr[e]
 Operation:        Loads a byte from a memory address pointed by a register and places it into the target register
@@ -58,6 +64,8 @@ Instruction word: 00101errssXXXXXX
                   e = 1 - write both bytes of the register, fill upper byte with MSB of the immediate value
                   rr = target register number (0-3)
                   ss = address register number (0-3)
+                  
+-----------------------------------------------------------------------------------------------------------------
 
 Instruction:      Store memory immediate
 Mnemonic(s):      ST rr, (imm)
@@ -66,12 +74,16 @@ Instruction word: 001100rriiiiiiii
                   rr = source register number (0-3)
                   i = immediate value bits
 
+-----------------------------------------------------------------------------------------------------------------
+
 Instruction:      Store memory indirect
 Mnemonic(s):      ST rr, (ss)
 Operation:        Stores a byte from a register to a memory address pointed by a register
 Instruction word: 001110rrssXXXXXX
                   rr = source register number (0-3)
                   ss = address register number (0-3)
+
+-----------------------------------------------------------------------------------------------------------------
 
 Instruction:      Move register
 Mnemonic(s):      MOV rr, ss
@@ -81,6 +93,8 @@ Instruction word: 0100XXssrrXX1010
                   rr = source register number (0-3)
                   ss = target register number (0-3)
                   
+-----------------------------------------------------------------------------------------------------------------
+
 Instruction:      Add registers
 Mnemonic(s):      ADD rr, ss, tt
 Operation:        Adds two registers and writes the result to a register 
@@ -89,6 +103,8 @@ Instruction word: 0100XXttrrss0000
                   ss = source register number (0-3)
                   tt = target register number (0-3)
 
+-----------------------------------------------------------------------------------------------------------------
+
 Instruction:      Subtract registers
 Mnemonic(s):      ADD rr, ss, tt
 Operation:        Substracts two registers (rr - ss) and writes the result to a register. 
@@ -96,6 +112,8 @@ Instruction word: 0100XXttrrss0000
                   rr = source register number (0-3)
                   ss = source register number (0-3)
                   tt = target register number (0-3)
+
+-----------------------------------------------------------------------------------------------------------------
 
 Instruction:      Swap register halves
 Mnemonic(s):      SWAP rr, ss
@@ -106,6 +124,8 @@ Instruction word: 0100XXssrrXX0101
                   rr = source register number (0-3)
                   ss = target register number (0-3)
 
+-----------------------------------------------------------------------------------------------------------------
+
 Instruction:      Negate register
 Mnemonic(s):      NOT rr, ss
                   NOT ss
@@ -115,6 +135,8 @@ Instruction word: 0100XXssrrXX0110
                   rr = source register number (0-3)
                   ss = target register number (0-3)
                   
+-----------------------------------------------------------------------------------------------------------------
+
 Instruction:      Logical AND operation
 Mnemonic(s):      AND rr, ss, tt
 Operation:        Performs a logical AND operation on two registers and writes the result to a register 
@@ -123,6 +145,8 @@ Instruction word: 0100XXttrrss0111
                   ss = source register number (0-3)
                   tt = target register number (0-3)
                   
+-----------------------------------------------------------------------------------------------------------------
+
 Instruction:      Logical OR operation
 Mnemonic(s):      OR rr, ss, tt
 Operation:        Performs a logical OR operation on two registers and writes the result to a register 
@@ -131,6 +155,8 @@ Instruction word: 0100XXttrrss1000
                   ss = source register number (0-3)
                   tt = target register number (0-3)
                   
+-----------------------------------------------------------------------------------------------------------------
+
 Instruction:      Logical XOR operation
 Mnemonic(s):      XOR rr, ss, tt
 Operation:        Performs a logical XOR operation on two registers and writes the result to a register 
@@ -138,6 +164,8 @@ Instruction word: 0100XXttrrss1001
                   rr = source register number (0-3)
                   ss = source register number (0-3)
                   tt = target register number (0-3)
+
+-----------------------------------------------------------------------------------------------------------------
 
 Instruction:      Increment register
 Mnemonic(s):      INC rr, ss
@@ -148,6 +176,8 @@ Instruction word: 0100XXssrrXX1100
                   rr = source register number (0-3)
                   ss = target register number (0-3)
 
+-----------------------------------------------------------------------------------------------------------------
+
 Instruction:      Decrement register
 Mnemonic(s):      INC rr, ss
                   INC ss
@@ -157,7 +187,38 @@ Instruction word: 0100XXssrrXX1011
                   rr = source register number (0-3)
                   ss = target register number (0-3)
 
+-----------------------------------------------------------------------------------------------------------------
+
+Instruction:      Push register to stack
+Mnemonic(s):      PUSH rr[e]
+Operation:        Moves the LSB of the register to the location pointed by SP and decrements SP by one.
+                  For convenience the assembler allows pushing the whole 16-bit when the 'e' character is appended
+                  to the register name. In this case the assembler will generate four instructions to perform
+                  a push-swap-push-swap operation and leave the register in it's original state.
+Instruction word: 10010XrrXXXXXXXX
+                  rr = source register number (0-3)
+
+-----------------------------------------------------------------------------------------------------------------
+
+Instruction:      Pop register from stack
+Mnemonic(s):      POP rr[e]
+Operation:        Reads a byte from the top of the stack, stores it into the provided register and increments
+                  SP by one. For convenience the assembler allows popping a 16-bit word off the stack when the 'e'
+                  character is appended to the register name. In this case the assembler will generate three
+                  instructions to perfom a pop-swap-pop operation.
+Instruction word: 10011XrrXXXXXXXX
+                  rr = source register number (0-3)
+
+-----------------------------------------------------------------------------------------------------------------
+
+
+Instruction:      Halt
+Mnemonic(s):      HALT
+Description:      No operation
+Instruction word: 1111XXXXXXXXXXXX
                   
+-----------------------------------------------------------------------------------------------------------------
+
 </code></pre>
 
 I/O map
