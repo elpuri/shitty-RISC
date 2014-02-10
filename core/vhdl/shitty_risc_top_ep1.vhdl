@@ -212,8 +212,7 @@ begin
 		wr_ena => display_device_wr_ena
 	);
 
-	-- The EP1 board supplies 5V to the LCD, but the  
-	hd44780_rw <= '0';
+	hd44780_rw <= '0'; 	-- The EP1 board supplies 5V to the LCD, but the FPGA can't handle 5V input so we're write only
 	hd44780_data <= lcdctrl_data_out;
 	
 	hd44780 : entity work.lcd_controller port map (
