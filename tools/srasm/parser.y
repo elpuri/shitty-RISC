@@ -341,6 +341,10 @@ swap : TOK_SWAP TOK_REGISTER TOK_COMMA TOK_REGISTER TOK_ENDL {
 not : TOK_NOT TOK_REGISTER TOK_COMMA TOK_REGISTER TOK_ENDL {
         addAluInstruction(codeSection, $4, $2, $2, AluInstruction::Not);
     }
+    |
+    TOK_NOT TOK_REGISTER TOK_ENDL {
+        addAluInstruction(codeSection, $2, $2, $2, AluInstruction::Not);
+    }
 
 dec : TOK_DEC TOK_REGISTER TOK_ENDL {
         addAluInstruction(codeSection, $2, $2, $2, AluInstruction::Dec);
